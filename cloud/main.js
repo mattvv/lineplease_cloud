@@ -13,7 +13,8 @@ Parse.Cloud.afterSave("Line", function(request, response) {
 	line = request.object;
 
 	//add line number if it does not exist.
-	if (!line.get("position")) {
+	if (line.get("position") == null) {
+		console.log("didn't get a position");
 		query = new Parse.Query("Line");
 		query.equalTo("scriptId", line.get("scriptId"));
 		query.count({
