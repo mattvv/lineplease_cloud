@@ -68,6 +68,30 @@ Parse.Cloud.define('removeScript', function(request, response) {
 	});
 })
 
+//delte line
+Parse.Cloud.define('removeLine', function(request, response) {
+	var query = new Parse.Query('Line');
+	query.get(request.params.lineId).then(function(l) {
+		var scriptId = l.get('scriptId');
+		l.destroy();
+
+		var linesQ = new Parse.Query('Line');
+		linesQ.equalTo('scriptId', script.id);
+		linesQ.ascending('position');
+		return linesQ.find();
+	}).then(function(lines) {
+		//reset all the lines to have correct ordering so there are no gaps
+		for (var i in lines) {
+			var line = lines[i];
+			line.set('position', i);
+			line.save();
+		}
+		response.success();
+	}, function(error) {
+		response.error(error);
+	})
+})
+
 //Defining the Re-order function!
 Parse.Cloud.define('reorderLines', function(request, response) {
 	var query = new Parse.Query('Line');
