@@ -46,6 +46,25 @@ Parse.Cloud.afterSave("Line", function(request, response) {
 
 });
 
+//delete script
+Parse.Cloud.define('removeScript', function(request, response) {
+	var query = new Parse.Query('Script');
+	query.get(request.params.scriptId).then(function(script) {
+		//we have the script, get the lines and remove them one by one.
+		var linesQ = new Parse.Query('Line');
+		linesQ.equalTo('scriptId', script.id);
+		return linesQ.find();
+	}).then(function(lines) {
+		for (var i in lines) {
+			var line = lines[i];
+			line.destroy();
+		}
+		script.destroy();
+	}, function(error){
+		response.error(error);
+	});
+})
+
 //Defining the Re-order function!
 Parse.Cloud.define('reorderLines', function(request, response) {
 	var query = new Parse.Query('Line');
@@ -74,7 +93,7 @@ Parse.Cloud.define('reorderLines', function(request, response) {
 				q.first().then(function(l) {
 					//we have the line to be changed in l.
 					console.log('regular: setting line ' + l.id + ' to ' + starting_position-1);
-					l.set('position', starting_position-i);
+					l.set('position', l.get('position')-1);
 					return l.save();
 				}).then(function() {
 					console.log('resolving promise!');
@@ -89,8 +108,8 @@ Parse.Cloud.define('reorderLines', function(request, response) {
 			promises.push(line.save());
 		} else {
 			change = change + 1;
-			var starting_position = line.get('position') - 1;
-			var final_position = request.params.position;
+			var starting_position = parseInt(line.get('position')) - 1;
+			var final_position = parseInt(request.params.position);
 
 			console.log('looping through lines. to save! backwards');
 			for (var i=0; i<(change-1); i++) {
@@ -103,7 +122,7 @@ Parse.Cloud.define('reorderLines', function(request, response) {
 				q.first().then(function(l) {
 					//we have the line to be changed in l.
 					console.log('setting line ' + l.id + ' to ' + starting_position+1);
-					l.set('position', starting_position+i);
+					l.set('position', l.get('position')+1);
 					return l.save();
 				}).then(function() {
 					promise.resolve();
