@@ -49,7 +49,9 @@ Parse.Cloud.afterSave("Line", function(request, response) {
 //delete script
 Parse.Cloud.define('removeScript', function(request, response) {
 	var query = new Parse.Query('Script');
-	query.get(request.params.scriptId).then(function(script) {
+	var script;
+	query.get(request.params.scriptId).then(function(s) {
+		script = s;
 		//we have the script, get the lines and remove them one by one.
 		var linesQ = new Parse.Query('Line');
 		linesQ.equalTo('scriptId', script.id);
@@ -60,6 +62,7 @@ Parse.Cloud.define('removeScript', function(request, response) {
 			line.destroy();
 		}
 		script.destroy();
+		response.success();
 	}, function(error){
 		response.error(error);
 	});
