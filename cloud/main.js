@@ -76,16 +76,20 @@ Parse.Cloud.define('removeLine', function(request, response) {
 		l.destroy();
 
 		var linesQ = new Parse.Query('Line');
-		linesQ.equalTo('scriptId', script.id);
+		linesQ.equalTo('scriptId', scriptId);
 		linesQ.ascending('position');
 		return linesQ.find();
 	}).then(function(lines) {
 		//reset all the lines to have correct ordering so there are no gaps
+		var promises = [];
 		for (var i in lines) {
 			var line = lines[i];
-			line.set('position', i);
-			line.save();
+			console.log('setting line ' + line.get('line') + ' to position ' + i)
+			line.set('position', parseInt(i));
+			promises.push(line.save());
 		}
+		return Parse.Promise.when(promises);
+	}).then(function() {
 		response.success();
 	}, function(error) {
 		response.error(error);
