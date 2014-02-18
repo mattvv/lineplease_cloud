@@ -110,7 +110,7 @@ Parse.Cloud.define('conversion', function(request, response) {
 			url: 'http://lineplease.herokuapp.com/conversions/enqueue',
 			params: {
 				conversionId: c.id,
-				username: c.get('username');
+				username: c.get('username')
 			}
 		});
 	}).then(function() {
