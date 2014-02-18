@@ -94,6 +94,30 @@ Parse.Cloud.define('removeLine', function(request, response) {
 	}, function(error) {
 		response.error(error);
 	})
+});
+
+Parse.Cloud.define('conversion', function(request, response) {
+	var query = new Parse.Query('Conversion');
+	query.get(request.params.conversionId).then(function(c) {
+		//assume that the file has already been uploaded and associated correctly. Let's start a conversion
+
+		c.set('status', 'Queued...');
+		c.set('percent', 0);
+		return c.save();
+	}).then(function(c) {
+		//this is where we do the web request:
+		return Parse.Cloud.httpRequest({
+			url: 'http://lineplease.herokuapp.com/conversions/enqueue',
+			params: {
+				conversionId: c.id,
+				username: c.get('username');
+			}
+		});
+	}).then(function() {
+		response.success();
+	}, function(error) {
+		response.error(error);
+	});
 })
 
 //Defining the Re-order function!
